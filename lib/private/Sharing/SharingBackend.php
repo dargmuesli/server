@@ -1399,7 +1399,7 @@ final readonly class SharingBackend implements ISharingBackend {
 		);
 	}
 
-	private static function parseTimestamp(string $timestampMs): \DateTimeImmutable {
+	public static function parseTimestamp(string $timestampMs): \DateTimeImmutable {
 		if (method_exists(\DateTimeImmutable::class, 'createFromTimestamp')) {
 			// with php 8.3 the method doesn't exist and psalm doesn't know the return type
 			/** @psalm-suppress MixedReturnStatement */
@@ -1418,5 +1418,28 @@ final readonly class SharingBackend implements ISharingBackend {
 		if (!$this->connection->inTransaction()) {
 			throw new RuntimeException('The SharingBackend can only be used inside a transaction.');
 		}
+	}
+
+	#[\Override]
+	public function getUserStatuses(string $id, array $userIds): array {
+		$this->assertInTransaction();
+
+		$userStatuses = [];
+		foreach (array_chunk($userIds, 1000) as $chunk) {
+			$qb = $this->connection->getQueryBuilder();
+			$result = $qb
+				->select('user_id', 'status')
+				->from('sharing_share_user_status')
+				->where($qb->expr()->eq('share_id', $qb->createNamedParameter($id)))
+				->andWhere($qb->expr()->in('user_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_STR_ARRAY)))
+				->executeQuery();
+			/** @var list<array{user_id: string, status: string}> */
+			$rows = $result->fetchAll();
+			foreach ($rows as $row) {
+				$userStatuses[$row['user_id']] = ShareUserStatus::from($row['status']);
+			}
+		}
+
+		return $userStatuses;
 	}
 }

@@ -212,4 +212,11 @@ interface ISharingBackend {
 	 * @experimental 35.0.0
 	 */
 	public function ensureDefaults(array $shares): array;
+
+	/**
+	 * @param list<string> $userIds
+	 * @return array<string, ShareUserStatus>
+	 * @experimental 35.0.0
+	 */
+	public function getUserStatuses(string $id, array $userIds): array;
 }

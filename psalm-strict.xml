@@ -72,6 +72,7 @@
 			<file name="lib/public/AppFramework/Controller.php"/>
 			<file name="lib/public/AppFramework/OCSController.php"/>
 			<directory name="build"/>
+			<file name="tests/lib/Traits/GroupTrait.php"/>
 		</ignoreFiles>
 	</projectFiles>
 	<extraFiles>
@@ -98,5 +99,10 @@
 				<file name="lib/private/DB/QueryBuilder/TypedQueryBuilder.php"/>
 			</errorLevel>
 		</InternalMethod>
+		<UndefinedClass>
+			<errorLevel type="suppress">
+				<referencedClass name="OCA\Circles\Model\Circle"/>
+			</errorLevel>
+		</UndefinedClass>
 	</issueHandlers>
 </psalm>
