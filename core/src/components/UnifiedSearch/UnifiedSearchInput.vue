@@ -506,4 +506,14 @@ defineExpose({ focus })
 		box-shadow: inset 0 0 0 2px var(--color-background-plain-text) !important;
 	}
 }
+
+@media (forced-colors: active) {
+	.unified-search-input__resting {
+		color: CanvasText;
+	}
+
+	.unified-search-input--mobile :deep(.button-vue) {
+		color: CanvasText;
+	}
+}
 </style>

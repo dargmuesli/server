@@ -50,6 +50,9 @@
 		height: var(--header-height);
 		box-sizing: border-box;
 		justify-content: space-between;
+		// Inherited by header icon buttons so browser colour overrides remap
+		// one property instead of each child's CSS-variable colour.
+		color: var(--color-background-plain-text);
 	}
 
 	// This is the first entry in the header, it represents the "home"-link
@@ -193,6 +196,41 @@
 				overflow: hidden;
 				text-overflow: ellipsis;
 			}
+		}
+	}
+
+	// NcHeaderMenu sets color from --color-background-plain-text with !important.
+	// Inherit from #header so user/browser colour overrides (which remap the
+	// header's color property) reach the search, notifications and contacts icons.
+	.header-menu .header-menu__trigger,
+	.header-menu .header-menu__trigger .button-vue__icon,
+	.header-menu .header-menu__trigger .button-vue__icon * {
+		color: inherit !important;
+	}
+}
+
+// Browser "override page colours" / forced-colors: use system text colour for
+// header icons. Theme text variables are not remapped inside icon fills.
+@media (forced-colors: active) {
+	:root {
+		--header-menu-icon-mask: none;
+	}
+
+	#header {
+		--color-background-plain-text: CanvasText;
+		color: CanvasText;
+
+		.header-menu .header-menu__trigger,
+		.header-menu .header-menu__trigger .button-vue__icon,
+		.header-menu .header-menu__trigger .button-vue__icon *,
+		.app-menu__waffle,
+		.app-menu__current-app {
+			color: CanvasText !important;
+		}
+
+		.header-menu .header-menu__trigger .button-vue__icon svg,
+		.header-menu .header-menu__trigger .button-vue__icon:not(:has(svg)) {
+			mask: none;
 		}
 	}
 }

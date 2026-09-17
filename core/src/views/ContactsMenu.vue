@@ -248,7 +248,7 @@ const userTeams: ITeam[] = []
 	overflow-y: hidden;
 
 	&__trigger-icon {
-		color: var(--color-background-plain-text) !important;
+		color: inherit !important;
 	}
 
 	&__menu {

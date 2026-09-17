@@ -718,7 +718,7 @@ $input-padding: 10px;
 
 .unified-search {
 	&__trigger-icon {
-		color: var(--color-background-plain-text) !important;
+		color: inherit !important;
 	}
 
 	&__input-wrapper {
