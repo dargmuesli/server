@@ -369,13 +369,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 
 		// Ensure we start with fresh instances of some classes to reduce side-effects between tests
 		/** @psalm-suppress DeprecatedMethod */
-		unset(\OC::$server[Factory::class]);
+		\OC::$server->removeFromInternalContainer(Factory::class);
 		/** @psalm-suppress DeprecatedMethod */
-		unset(\OC::$server[AppFetcher::class]);
+		\OC::$server->removeFromInternalContainer(AppFetcher::class);
 		/** @psalm-suppress DeprecatedMethod */
-		unset(\OC::$server[Installer::class]);
+		\OC::$server->removeFromInternalContainer(Installer::class);
 		/** @psalm-suppress DeprecatedMethod */
-		unset(\OC::$server[Updater::class]);
+		\OC::$server->removeFromInternalContainer(Updater::class);
 
 		/** @var SetupManager $setupManager */
 		$setupManager = Server::get(SetupManager::class);
