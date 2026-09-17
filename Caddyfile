@@ -6,13 +6,13 @@
 {
 	metrics
 	frankenphp {
-		num_threads 192
+		num_threads 193
 		max_threads 256
 		# max_requests 500
 	}
 }
 
-localhost {
+{$SERVER_NAME::80} {
 	php_server {
 		worker {
 			file index.php
