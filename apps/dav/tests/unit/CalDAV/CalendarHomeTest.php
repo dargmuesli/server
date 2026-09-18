@@ -431,4 +431,87 @@ class CalendarHomeTest extends TestCase {
 		$this->assertInstanceOf(FederatedCalendar::class, $actual[3]);
 		$this->assertInstanceOf(FederatedCalendar::class, $actual[4]);
 	}
+
+	public function testGetCalendarObjectByUIDReturnsOwnedObjectDirectly(): void {
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarObjectByUID')
+			->with('user-principal-123', 'uid-1')
+			->willReturn('personal/event.ics');
+
+		// An object the principal owns must not trigger the shared calendar fallback at all.
+		$this->backend
+			->expects(self::never())
+			->method('getCalendarsForUser');
+		$this->backend
+			->expects(self::never())
+			->method('getCalendarObjectByUIDInCalendars');
+
+		self::assertSame('personal/event.ics', $this->calendarHome->getCalendarObjectByUID('uid-1'));
+	}
+
+	public function testGetCalendarObjectByUIDFallsBackToWritableSharedCalendars(): void {
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarObjectByUID')
+			->with('user-principal-123', 'uid-1')
+			->willReturn(null);
+
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarsForUser')
+			->with('user-principal-123')
+			->willReturn([
+				[
+					'id' => 42,
+					'uri' => 'shared-calendar_shared_by_alice',
+					'{http://owncloud.org/ns}read-only' => false,
+				],
+				[
+					'id' => 43,
+					'uri' => 'readonly-calendar_shared_by_bob',
+					'{http://owncloud.org/ns}read-only' => true,
+				],
+			]);
+
+		// Only the writable calendar may be searched, and the path has to use the uri the calendar is mounted under in this home.
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarObjectByUIDInCalendars')
+			->with([42], 'uid-1')
+			->willReturn([
+				'calendarid' => 42,
+				'objecturi' => 'event.ics',
+			]);
+
+		self::assertSame('shared-calendar_shared_by_alice/event.ics', $this->calendarHome->getCalendarObjectByUID('uid-1'));
+	}
+
+	public function testGetCalendarObjectByUIDReturnsNullWhenNowhereToBeFound(): void {
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarObjectByUID')
+			->with('user-principal-123', 'uid-1')
+			->willReturn(null);
+
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarsForUser')
+			->with('user-principal-123')
+			->willReturn([
+				[
+					'id' => 42,
+					'uri' => 'shared-calendar_shared_by_alice',
+					'{http://owncloud.org/ns}read-only' => false,
+				],
+			]);
+
+		$this->backend
+			->expects(self::once())
+			->method('getCalendarObjectByUIDInCalendars')
+			->with([42], 'uid-1')
+			->willReturn(null);
+
+		self::assertNull($this->calendarHome->getCalendarObjectByUID('uid-1'));
+	}
 }
