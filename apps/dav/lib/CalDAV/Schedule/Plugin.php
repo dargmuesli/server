@@ -267,7 +267,13 @@ class Plugin extends \Sabre\CalDAV\Schedule\Plugin {
 		// Log all possible codes returned from the parent method that mean something went wrong
 		// 3.7, 3.8, 5.0, 5.2
 		if ($iTipMessage->scheduleStatus !== '1.2;Message delivered locally') {
-			$this->logger->debug('Message not delivered locally with status: ' . $iTipMessage->scheduleStatus);
+			// A failure here means an invitation or a response was silently dropped, so it is logged at warning level rather than debug.
+			// At debug level this is invisible on a default installation, which has made delivery failures very hard to diagnose.
+			$this->logger->warning('Message not delivered locally with status: ' . $iTipMessage->scheduleStatus, [
+				'method' => $iTipMessage->method,
+				'recipient' => $iTipMessage->recipient,
+				'uid' => $iTipMessage->uid,
+			]);
 			return;
 		}
 		// We only care about request. reply and cancel are properly handled
