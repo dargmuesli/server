@@ -2698,6 +2698,43 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		return null;
 	}
 
+	/**
+	 * Find a calendar object by UID within an explicit set of calendars, no matter who owns them.
+	 *
+	 * getCalendarObjectByUID() is bound by the sabre contract to consider only calendars the principal owns.
+	 * Scheduling needs a wider view, because an event created on a shared calendar lives in the owner's calendar rather than in the organizer's.
+	 * The caller is responsible for passing only calendars the principal may write to.
+	 *
+	 * @param int[] $calendarIds
+	 * @return array{calendarid: int, objecturi: string}|null
+	 */
+	public function getCalendarObjectByUIDInCalendars(array $calendarIds, string $uid): ?array {
+		if ($calendarIds === []) {
+			return null;
+		}
+
+		$query = $this->db->getQueryBuilder();
+		$query->select(['co.calendarid', 'co.uri'])
+			->from('calendarobjects', 'co')
+			->where($query->expr()->in('co.calendarid', $query->createNamedParameter($calendarIds, IQueryBuilder::PARAM_INT_ARRAY), IQueryBuilder::PARAM_INT_ARRAY))
+			->andWhere($query->expr()->eq('co.calendartype', $query->createNamedParameter(self::CALENDAR_TYPE_CALENDAR, IQueryBuilder::PARAM_INT), IQueryBuilder::PARAM_INT))
+			->andWhere($query->expr()->eq('co.uid', $query->createNamedParameter($uid)))
+			->andWhere($query->expr()->isNull('co.deleted_at'));
+
+		$stmt = $query->executeQuery();
+		$row = $stmt->fetchAssociative();
+		$stmt->closeCursor();
+
+		if (!$row) {
+			return null;
+		}
+
+		return [
+			'calendarid' => (int)$row['calendarid'],
+			'objecturi' => (string)$row['uri'],
+		];
+	}
+
 	public function getCalendarObjectById(string $principalUri, int $id): ?array {
 		$query = $this->db->getQueryBuilder();
 		$query->select(['co.id', 'co.uri', 'co.uid', 'co.lastmodified', 'co.etag', 'co.calendarid', 'co.size', 'co.calendardata', 'co.componenttype', 'co.classification', 'co.deleted_at'])

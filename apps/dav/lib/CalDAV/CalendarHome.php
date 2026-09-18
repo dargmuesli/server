@@ -67,6 +67,49 @@ class CalendarHome extends \Sabre\CalDAV\CalendarHome {
 	}
 
 	/**
+	 * Sabre resolves a scheduling message against the objects the principal owns, which follows the CalDAV contract but is too narrow here.
+	 * An event created by a user on a calendar shared with them lives in the owner's calendar, while the iTip reply is addressed to the creator as organizer.
+	 * The owner-only lookup then finds nothing, the iTip broker refuses to process a reply without an existing object, and the attendee sees a generic failure.
+	 * Falling back to the calendars shared with this principal with write access lets the reply update the event where it actually lives.
+	 *
+	 * @param string $uid
+	 * @return string|null
+	 */
+	#[\Override]
+	public function getCalendarObjectByUID($uid) {
+		$path = parent::getCalendarObjectByUID($uid);
+		if ($path !== null) {
+			return $path;
+		}
+
+		if (!$this->caldavBackend instanceof CalDavBackend) {
+			return null;
+		}
+
+		$readOnlyKey = '{' . \OCA\DAV\DAV\Sharing\Plugin::NS_OWNCLOUD . '}read-only';
+
+		// Map every calendar this principal may write to, keyed by id, to the uri it is mounted under in this home.
+		// A shared calendar is mounted under a different uri than the one the owner sees, so the returned path has to use the mounted uri.
+		$writableCalendars = [];
+		foreach ($this->caldavBackend->getCalendarsForUser($this->principalInfo['uri']) as $calendar) {
+			if (!empty($calendar[$readOnlyKey])) {
+				continue;
+			}
+			if (!isset($calendar['id'], $calendar['uri']) || !is_numeric($calendar['id'])) {
+				continue;
+			}
+			$writableCalendars[(int)$calendar['id']] = (string)$calendar['uri'];
+		}
+
+		$result = $this->caldavBackend->getCalendarObjectByUIDInCalendars(array_keys($writableCalendars), $uid);
+		if ($result === null) {
+			return null;
+		}
+
+		return $writableCalendars[$result['calendarid']] . '/' . $result['objecturi'];
+	}
+
+	/**
 	 * @inheritdoc
 	 */
 	#[\Override]
