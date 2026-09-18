@@ -1395,7 +1395,6 @@ class ComposerStaticInit749170dad3f5e7f9ca158f5a9f04f6a2
         'OC\\Authentication\\WebAuthn\\Manager' => __DIR__ . '/../../..' . '/lib/private/Authentication/WebAuthn/Manager.php',
         'OC\\Avatar\\Avatar' => __DIR__ . '/../../..' . '/lib/private/Avatar/Avatar.php',
         'OC\\Avatar\\AvatarManager' => __DIR__ . '/../../..' . '/lib/private/Avatar/AvatarManager.php',
-        'OC\\Avatar\\AvatarVersion' => __DIR__ . '/../../..' . '/lib/private/Avatar/AvatarVersion.php',
         'OC\\Avatar\\GuestAvatar' => __DIR__ . '/../../..' . '/lib/private/Avatar/GuestAvatar.php',
         'OC\\Avatar\\PlaceholderAvatar' => __DIR__ . '/../../..' . '/lib/private/Avatar/PlaceholderAvatar.php',
         'OC\\Avatar\\RemoteAvatar' => __DIR__ . '/../../..' . '/lib/private/Avatar/RemoteAvatar.php',

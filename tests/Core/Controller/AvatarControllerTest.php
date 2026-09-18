@@ -202,20 +202,11 @@ class AvatarControllerTest extends \Test\TestCase {
 		$this->avatarManager->method('getAvatar')->with('userId')->willReturn($this->avatarMock);
 		$this->avatarManager->method('canCacheAvatarLongTerm')->with('userId')->willReturn($cacheable);
 
-		$response = $this->avatarController->getAvatar('userId', 64, false, $version);
+		$light = $this->avatarController->getAvatar('userId', 64, false, $version);
+		$dark = $this->avatarController->getAvatarDark('userId', 64, false, $version);
 
-		$this->assertEquals($expected, $response->getHeaders()['Cache-Control']);
-	}
-
-	#[\PHPUnit\Framework\Attributes\DataProvider('dataCacheWindow')]
-	public function testCacheWindowForTheDarkAvatar(string $version, bool $cacheable, string $expected): void {
-		$this->avatarMock->method('getFile')->willReturn($this->avatarFile);
-		$this->avatarManager->method('getAvatar')->with('userId')->willReturn($this->avatarMock);
-		$this->avatarManager->method('canCacheAvatarLongTerm')->with('userId')->willReturn($cacheable);
-
-		$response = $this->avatarController->getAvatarDark('userId', 64, false, $version);
-
-		$this->assertEquals($expected, $response->getHeaders()['Cache-Control']);
+		$this->assertEquals($expected, $light->getHeaders()['Cache-Control'], 'light avatar');
+		$this->assertEquals($expected, $dark->getHeaders()['Cache-Control'], 'dark avatar');
 	}
 
 	public function testGetAvatarSize64(): void {

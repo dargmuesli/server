@@ -8,11 +8,11 @@
 
 namespace Test\Avatar;
 
-use OC\Avatar\AvatarVersion;
 use OC\Avatar\UserAvatar;
 use OC\Files\SimpleFS\SimpleFolder;
 use OC\User\User;
 use OCP\Color;
+use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFile;
@@ -27,7 +27,7 @@ class UserAvatarTest extends \Test\TestCase {
 	private UserAvatar $avatar;
 	private SimpleFolder&MockObject $folder;
 	private IConfig&MockObject $config;
-	private AvatarVersion&MockObject $avatarVersion;
+	private IUserConfig&MockObject $userConfig;
 	private User&MockObject $user;
 
 	#[\Override]
@@ -38,7 +38,7 @@ class UserAvatarTest extends \Test\TestCase {
 		// abcdefghi is a convenient name that our algorithm convert to our nextcloud blue 0082c9
 		$this->user = $this->getUserWithDisplayName('abcdefghi');
 		$this->config = $this->createMock(IConfig::class);
-		$this->avatarVersion = $this->createMock(AvatarVersion::class);
+		$this->userConfig = $this->createMock(IUserConfig::class);
 
 		$this->avatar = $this->getUserAvatar($this->user);
 	}
@@ -226,9 +226,9 @@ class UserAvatarTest extends \Test\TestCase {
 
 		$this->config->expects($this->exactly(2))
 			->method('setUserValue');
-		$this->avatarVersion->expects($this->once())
-			->method('bump')
-			->with($this->user->getUID());
+		$this->userConfig->expects($this->once())
+			->method('setValueInt')
+			->with($this->user->getUID(), 'avatar', 'version', 1);
 
 		$this->user->expects($this->exactly(1))->method('triggerChange');
 
@@ -294,7 +294,7 @@ class UserAvatarTest extends \Test\TestCase {
 			$user,
 			$this->createMock(LoggerInterface::class),
 			$this->config,
-			$this->avatarVersion,
+			$this->userConfig,
 		);
 	}
 }

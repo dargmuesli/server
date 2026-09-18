@@ -9,7 +9,6 @@
 namespace Test\Avatar;
 
 use OC\Avatar\AvatarManager;
-use OC\Avatar\AvatarVersion;
 use OC\Avatar\PlaceholderAvatar;
 use OC\Avatar\RemoteAvatar;
 use OC\Avatar\UserAvatar;
@@ -19,6 +18,7 @@ use OC\User\User;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountManager;
 use OCP\Accounts\IAccountProperty;
+use OCP\Config\IUserConfig;
 use OCP\Federation\ICloudId;
 use OCP\Federation\ICloudIdManager;
 use OCP\Files\IAppData;
@@ -52,7 +52,7 @@ class AvatarManagerTest extends \Test\TestCase {
 	/** @var KnownUserService | \PHPUnit\Framework\MockObject\MockObject */
 	private $knownUserService;
 	private ICloudIdManager&\PHPUnit\Framework\MockObject\MockObject $cloudIdManager;
-	private AvatarVersion&\PHPUnit\Framework\MockObject\MockObject $avatarVersion;
+	private IUserConfig&\PHPUnit\Framework\MockObject\MockObject $userConfig;
 
 	#[\Override]
 	protected function setUp(): void {
@@ -67,7 +67,7 @@ class AvatarManagerTest extends \Test\TestCase {
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->knownUserService = $this->createMock(KnownUserService::class);
 		$this->cloudIdManager = $this->createMock(ICloudIdManager::class);
-		$this->avatarVersion = $this->createMock(AvatarVersion::class);
+		$this->userConfig = $this->createMock(IUserConfig::class);
 
 		$this->avatarManager = new AvatarManager(
 			$this->userSession,
@@ -79,7 +79,7 @@ class AvatarManagerTest extends \Test\TestCase {
 			$this->accountManager,
 			$this->knownUserService,
 			$this->cloudIdManager,
-			$this->avatarVersion,
+			$this->userConfig,
 		);
 	}
 
@@ -134,7 +134,7 @@ class AvatarManagerTest extends \Test\TestCase {
 			->with('valid-user')
 			->willReturn($folder);
 
-		$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->avatarVersion);
+		$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->userConfig);
 		$this->assertEquals($expected, $this->avatarManager->getAvatar('valid-user'));
 	}
 
@@ -181,7 +181,7 @@ class AvatarManagerTest extends \Test\TestCase {
 			->method('getScope')
 			->willReturn(IAccountManager::SCOPE_FEDERATED);
 
-		$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->avatarVersion);
+		$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->userConfig);
 		$this->assertEquals($expected, $this->avatarManager->getAvatar('vaLid-USER'));
 	}
 
@@ -267,9 +267,9 @@ class AvatarManagerTest extends \Test\TestCase {
 		}
 
 		if ($expectedPlaceholder) {
-			$expected = new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->avatarVersion);
+			$expected = new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->userConfig);
 		} else {
-			$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->avatarVersion);
+			$expected = new UserAvatar($folder, $this->l10n, $user, $this->logger, $this->config, $this->userConfig);
 		}
 		$this->assertEquals($expected, $this->avatarManager->getAvatar('valid-user'));
 	}

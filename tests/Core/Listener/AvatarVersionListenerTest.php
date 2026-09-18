@@ -8,31 +8,32 @@ declare(strict_types=1);
 
 namespace Tests\Core\Listener;
 
-use OC\Avatar\AvatarVersion;
 use OC\Core\Listener\AvatarVersionListener;
 use OCP\Accounts\UserUpdatedEvent;
+use OCP\Config\IUserConfig;
 use OCP\EventDispatcher\Event;
 use OCP\IUser;
 use OCP\User\Events\UserChangedEvent;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class AvatarVersionListenerTest extends \Test\TestCase {
-	private AvatarVersion&MockObject $avatarVersion;
+	private IUserConfig&MockObject $userConfig;
 	private AvatarVersionListener $listener;
 
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->avatarVersion = $this->createMock(AvatarVersion::class);
-		$this->listener = new AvatarVersionListener($this->avatarVersion);
+		$this->userConfig = $this->createMock(IUserConfig::class);
+		$this->listener = new AvatarVersionListener($this->userConfig);
 	}
 
 	public function testBumpsTheVersionWhenTheAccountChanges(): void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('alice');
 
-		$this->avatarVersion->expects($this->once())->method('bump')->with('alice');
+		$this->userConfig->expects($this->once())->method('setValueInt')
+			->with('alice', 'avatar', 'version', 1);
 
 		$this->listener->handle(new UserUpdatedEvent($user, []));
 	}
@@ -41,7 +42,8 @@ class AvatarVersionListenerTest extends \Test\TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('alice');
 
-		$this->avatarVersion->expects($this->once())->method('bump')->with('alice');
+		$this->userConfig->expects($this->once())->method('setValueInt')
+			->with('alice', 'avatar', 'version', 1);
 
 		$this->listener->handle(new UserChangedEvent($user, 'enabled', false, true));
 	}
@@ -49,13 +51,13 @@ class AvatarVersionListenerTest extends \Test\TestCase {
 	public function testIgnoresUnrelatedUserChanges(): void {
 		$user = $this->createMock(IUser::class);
 
-		$this->avatarVersion->expects($this->never())->method('bump');
+		$this->userConfig->expects($this->never())->method('setValueInt');
 
 		$this->listener->handle(new UserChangedEvent($user, 'quota', '1 GB', '2 GB'));
 	}
 
 	public function testIgnoresOtherEvents(): void {
-		$this->avatarVersion->expects($this->never())->method('bump');
+		$this->userConfig->expects($this->never())->method('setValueInt');
 
 		$this->listener->handle(new Event());
 	}

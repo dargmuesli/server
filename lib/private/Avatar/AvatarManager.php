@@ -13,6 +13,7 @@ use OC\KnownUser\KnownUserService;
 use OC\User\Manager;
 use OCP\Accounts\IAccountManager;
 use OCP\Accounts\PropertyDoesNotExistException;
+use OCP\Config\IUserConfig;
 use OCP\Federation\ICloudIdManager;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -41,7 +42,7 @@ class AvatarManager implements IAvatarManager {
 		private IAccountManager $accountManager,
 		private KnownUserService $knownUserService,
 		private ICloudIdManager $cloudIdManager,
-		private AvatarVersion $avatarVersion,
+		private IUserConfig $userConfig,
 	) {
 	}
 
@@ -87,19 +88,19 @@ class AvatarManager implements IAvatarManager {
 			// v2-private scope hides the avatar from public access and from unknown users
 			case IAccountManager::SCOPE_PRIVATE:
 				if ($requestingUser !== null && $this->knownUserService->isKnownToUser($requestingUser->getUID(), $userId)) {
-					return new UserAvatar($folder, $this->l, $user, $this->logger, $this->config, $this->avatarVersion);
+					return new UserAvatar($folder, $this->l, $user, $this->logger, $this->config, $this->userConfig);
 				}
 				break;
 			case IAccountManager::SCOPE_LOCAL:
 			case IAccountManager::SCOPE_FEDERATED:
 			case IAccountManager::SCOPE_PUBLISHED:
-				return new UserAvatar($folder, $this->l, $user, $this->logger, $this->config, $this->avatarVersion);
+				return new UserAvatar($folder, $this->l, $user, $this->logger, $this->config, $this->userConfig);
 			default:
 				// use a placeholder avatar which caches the generated images
-				return new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->avatarVersion);
+				return new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->userConfig);
 		}
 
-		return new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->avatarVersion);
+		return new PlaceholderAvatar($folder, $user, $this->config, $this->logger, $this->userConfig);
 	}
 
 	private function getAvatarScope(IUser $user): string {
@@ -124,7 +125,7 @@ class AvatarManager implements IAvatarManager {
 		}
 
 		if (!$user->isEnabled()) {
-			// Serves a guest avatar, and re-enabling bumps no version.
+			// Serves a guest avatar, and those went out with the short window.
 			return false;
 		}
 

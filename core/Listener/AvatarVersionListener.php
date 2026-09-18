@@ -8,42 +8,40 @@ declare(strict_types=1);
 
 namespace OC\Core\Listener;
 
-use OC\Avatar\AvatarVersion;
 use OCP\Accounts\UserUpdatedEvent;
+use OCP\Config\IUserConfig;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserChangedEvent;
 
 /**
- * Bumps the avatar version when something outside the avatar itself changes
- * what a viewer would be served.
- *
  * Uploading or removing an avatar bumps it already. The avatar scope lives in
  * the account, so switching to v2-private has to invalidate too, and a disabled
  * account starts serving a guest avatar without touching the avatar at all.
  *
- * Bumping on any account change rather than diffing the scope: AccountManager
- * only dispatches this when something actually changed. Editing an unrelated
- * profile field then costs every viewer one avatar refetch, which is cheaper
- * than carrying a second copy of the scope around to compare against.
+ * Bumping on any account change rather than diffing the avatar scope, because
+ * AccountManager only dispatches this when something actually changed. Editing
+ * an unrelated profile field then costs one needless refetch per viewer holding
+ * that avatar.
  *
  * @template-implements IEventListener<UserUpdatedEvent|UserChangedEvent>
  */
 class AvatarVersionListener implements IEventListener {
 	public function __construct(
-		private AvatarVersion $avatarVersion,
+		private IUserConfig $userConfig,
 	) {
 	}
 
 	#[\Override]
 	public function handle(Event $event): void {
-		if ($event instanceof UserUpdatedEvent) {
-			$this->avatarVersion->bump($event->getUser()->getUID());
+		$accountChanged = $event instanceof UserUpdatedEvent;
+		$enabledChanged = $event instanceof UserChangedEvent && $event->getFeature() === 'enabled';
+		if (!$accountChanged && !$enabledChanged) {
 			return;
 		}
 
-		if ($event instanceof UserChangedEvent && $event->getFeature() === 'enabled') {
-			$this->avatarVersion->bump($event->getUser()->getUID());
-		}
+		$userId = $event->getUser()->getUID();
+		$this->userConfig->setValueInt($userId, 'avatar', 'version',
+			$this->userConfig->getValueInt($userId, 'avatar', 'version') + 1);
 	}
 }

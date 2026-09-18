@@ -1354,7 +1354,6 @@ return array(
     'OC\\Authentication\\WebAuthn\\Manager' => $baseDir . '/lib/private/Authentication/WebAuthn/Manager.php',
     'OC\\Avatar\\Avatar' => $baseDir . '/lib/private/Avatar/Avatar.php',
     'OC\\Avatar\\AvatarManager' => $baseDir . '/lib/private/Avatar/AvatarManager.php',
-    'OC\\Avatar\\AvatarVersion' => $baseDir . '/lib/private/Avatar/AvatarVersion.php',
     'OC\\Avatar\\GuestAvatar' => $baseDir . '/lib/private/Avatar/GuestAvatar.php',
     'OC\\Avatar\\PlaceholderAvatar' => $baseDir . '/lib/private/Avatar/PlaceholderAvatar.php',
     'OC\\Avatar\\RemoteAvatar' => $baseDir . '/lib/private/Avatar/RemoteAvatar.php',

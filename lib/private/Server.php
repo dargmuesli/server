@@ -606,7 +606,7 @@ class Server extends ServerContainer {
 				$c->get(IAccountManager::class),
 				$c->get(KnownUserService::class),
 				$c->get(ICloudIdManager::class),
-				$c->get(\OC\Avatar\AvatarVersion::class),
+				$c->get(IUserConfig::class),
 			);
 		});
 
